@@ -1,0 +1,19 @@
+{
+  "name": "fso-blog-list-backend",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/eyc94/FSO-Blog-List-Backend.git"
+  },
+  "author": "EC",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/eyc94/FSO-Blog-List-Backend/issues"
+  },
+  "homepage": "https://github.com/eyc94/FSO-Blog-List-Backend#readme"
+}
