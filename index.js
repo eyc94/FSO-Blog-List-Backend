@@ -12,10 +12,21 @@ const blogSchema = new mongoose.Schema({
     likes: Number
 });
 
+blogSchema.set('toJSON', {
+    transform: (document, returnedObject) => {
+        returnedObject.id = returnedObject._id.toString();
+        delete returnedObject._id;
+        delete returnedObject.__v;
+    }
+});
+
 const Blog = mongoose.model('Blog', blogSchema);
 
 const mongoUrl = process.env.MONGODB_URI;
 mongoose.connect(mongoUrl);
+
+app.use(cors());
+app.use(express.json());
 
 app.get('/api/blogs', (request, response) => {
     Blog
@@ -27,6 +38,13 @@ app.get('/api/blogs', (request, response) => {
 
 app.post('/api/blogs', (request, response) => {
     const blog = new Blog(request.body);
+
+    // const blog = new Blog({
+    //     title: body.title,
+    //     author: body.author,
+    //     url: body.url,
+    //     likes: body.likes
+    // });
 
     blog
         .save()
