@@ -1,5 +1,3 @@
-const _ = require('lodash');
-
 const dummy = (blogs) => {
     return 1;
 };
@@ -27,9 +25,20 @@ const favoriteBlog = (blogs) => {
 };
 
 const mostBlogs = (blogs) => {
-    let authorWithMostBlogs = {};
+    let authors = blogs.map(blog => blog.author);
+    authors = [...new Set(authors)];
 
-    return authorWithMostBlogs;
+    let published = new Array(authors.length).fill(0);
+    blogs.map(blog => {
+        published[authors.indexOf(blog.author)]++;
+    });
+
+    let index = published.indexOf(Math.max(...published));
+
+    return {
+        author: authors[index],
+        blog: published[index]
+    };
 };
 
 module.exports = {
