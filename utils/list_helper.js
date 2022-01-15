@@ -37,7 +37,7 @@ const mostBlogs = (blogs) => {
 
     return {
         author: authors[index],
-        blog: published[index]
+        blogs: published[index]
     };
 };
 
