@@ -41,9 +41,27 @@ const mostBlogs = (blogs) => {
     };
 };
 
+const mostLikes = (blogs) => {
+    let authors = blogs.map(blog => blog.author);
+    authors = [...new Set(authors)];
+
+    let total = new Array(authors.length).fill(0);
+    blogs.map(blog => {
+        total[authors.indexOf(blog.author)] += blog.likes;
+    });
+
+    let index = total.indexOf(Math.max(...total));
+
+    return {
+        author: authors[index],
+        likes: total[index]
+    };
+};
+
 module.exports = {
     dummy,
     totalLikes,
     favoriteBlog,
-    mostBlogs
+    mostBlogs,
+    mostLikes
 };
