@@ -70,6 +70,21 @@ test('this blog has no likes so it needs 0 likes', async () => {
     expect(response.body.likes).toBe(0);
 });
 
+test('adding blogs with no title and url', async () => {
+    const newBlog = {
+        author: "The Mysterious Author",
+        likes: 234
+    };
+
+    await api
+        .post('/api/blogs')
+        .send(newBlog)
+        .expect(400);
+
+    const response = await helper.blogsInDb();
+    expect(response.body).toHaveLength(helper.initialBlogs.length);
+});
+
 afterAll(() => {
     mongoose.connection.close();
 });
