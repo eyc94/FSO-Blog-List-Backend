@@ -1,30 +1,18 @@
-const mongoose = require('mongoose');
 const supertest = require('supertest');
+const mongoose = require('mongoose');
+const helper = require('./test_helper');
 const app = require('../app');
-
 const api = supertest(app);
 
 const Blog = require('../models/blog');
-const initialBlogs = [
-    {
-        title: 'This is a sample title 1',
-        author: 'John Doe',
-        url: 'www.sample-one.com',
-        likes: 20
-    },
-    {
-        title: 'This is a sample title 2',
-        author: 'Jane Doe',
-        url: 'www.sample-two.com',
-        likes: 35
-    }
-];
 
 beforeEach(async () => {
     await Blog.deleteMany({});
-    let blogObject = new Blog(initialBlogs[0]);
+
+    let blogObject = new Blog(helper.initialBlogs[0]);
     await blogObject.save();
-    blogObject = new Blog(initialBlogs[1]);
+
+    blogObject = new Blog(helper.initialBlogs[1]);
     await blogObject.save();
 });
 
@@ -37,7 +25,12 @@ test('blogs are returned as json', async () => {
 
 test('all blogs are returned', async () => {
     const response = await api.get('/api/blogs');
-    expect(response.body).toHaveLength(initialBlogs.length);
+    expect(response.body).toHaveLength(helper.initialBlogs.length);
+});
+
+test('all blogs have property named id, not _id', async () => {
+    const response = await api.get('/api/blogs');
+    expect(response.body[0].id).toBeDefined();
 });
 
 afterAll(() => {
