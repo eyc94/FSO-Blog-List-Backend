@@ -82,7 +82,7 @@ test('adding blogs with no title and url', async () => {
         .expect(400);
 
     const response = await helper.blogsInDb();
-    expect(response.body).toHaveLength(helper.initialBlogs.length);
+    expect(response).toHaveLength(helper.initialBlogs.length);
 });
 
 afterAll(() => {
