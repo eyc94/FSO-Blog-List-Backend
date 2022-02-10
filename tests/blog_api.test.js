@@ -44,7 +44,7 @@ test('a valid blog can be added', async () => {
     await api
         .post('/api/blogs')
         .send(newBlog)
-        .expect(201)
+        .expect(200)
         .expect('Content-Type', /application\/json/);
 
     const blogsAtEnd = await helper.blogsInDb();
@@ -54,6 +54,20 @@ test('a valid blog can be added', async () => {
     expect(contents).toContain(
         'This blog is about dogs!'
     );
+});
+
+test('this blog has no likes so it needs 0 likes', async () => {
+    const newBlog = {
+        title: "This blog is going to start with 0 likes!",
+        author: "Joe Smith",
+        url: "www.no-likes.com"
+    };
+
+    const response = await api
+        .post('/api/blogs')
+        .send(newBlog);
+
+    expect(response.body.likes).toBe(0);
 });
 
 afterAll(() => {
