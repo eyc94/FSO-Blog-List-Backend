@@ -99,8 +99,8 @@ test('deletion of a blog', async () => {
         helper.initialBlogs.length - 1
     );
 
-    const contents = blogsAtEnd.map(b => b.content);
-    expect(contents).not.toContain(blogToDelete.content);
+    const contents = blogsAtEnd.map(b => b.title);
+    expect(contents).not.toContain(blogToDelete.title);
 });
 
 afterAll(() => {
