@@ -13,91 +13,170 @@ beforeEach(async () => {
     await Blog.insertMany(helper.initialBlogs);
 });
 
-test('blogs are returned as json', async () => {
-    await api
-        .get('/api/blogs')
-        .expect(200)
-        .expect('Content-Type', /application\/json/);
-}, 100000);
+describe('retrieving information on blogs when there is at least 1 blog', () => {
+    test('blogs are returned as json', async () => {
+        await api
+            .get('/api/blogs')
+            .expect(200)
+            .expect('Content-Type', /application\/json/);
+    }, 100000);
 
-test('all blogs are returned', async () => {
-    const response = await api.get('/api/blogs');
-    expect(response.body).toHaveLength(helper.initialBlogs.length);
+    test('all blogs are returned', async () => {
+        const response = await api.get('/api/blogs');
+        expect(response.body).toHaveLength(helper.initialBlogs.length);
+    });
+
+    test('all blogs have property named id, not _id', async () => {
+        const response = await api.get('/api/blogs');
+        expect(response.body[0].id).toBeDefined();
+    });
 });
 
-test('all blogs have property named id, not _id', async () => {
-    const response = await api.get('/api/blogs');
-    expect(response.body[0].id).toBeDefined();
-});
+describe('testing the creation of blogs with user tokens', () => {
+    beforeEach(async () => {
+        await User.deleteMany({});
 
-test('a valid blog can be added', async () => {
-    const newBlog = {
-        title: "This blog is about dogs!",
-        author: "Dog Man",
-        url: "www.dogs.com",
-        likes: 124
-    };
+        const passwordHash = await bcrypt.hash('supersecret', 10);
+        const user = new User({ username: 'superuser', passwordHash });
 
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(200)
-        .expect('Content-Type', /application\/json/);
+        await user.save();
+    });
 
-    const blogsAtEnd = await helper.blogsInDb();
-    expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1);
+    test('a valid blog can be added', async () => {
+        const targetUser = {
+            username: 'superuser',
+            password: 'supersecret'
+        };
 
-    const contents = blogsAtEnd.map(b => b.title);
-    expect(contents).toContain(
-        'This blog is about dogs!'
-    );
-});
+        const userResult = await api
+            .post('/api/login')
+            .send(targetUser)
+            .expect(200);
 
-test('this blog has no likes so it needs 0 likes', async () => {
-    const newBlog = {
-        title: "This blog is going to start with 0 likes!",
-        author: "Joe Smith",
-        url: "www.no-likes.com"
-    };
+        const { token } = userResult.body;
 
-    const response = await api
-        .post('/api/blogs')
-        .send(newBlog);
+        const newBlog = {
+            title: "This blog is about dogs!",
+            author: "Dog Man",
+            url: "www.dogs.com",
+            likes: 124
+        };
 
-    expect(response.body.likes).toBe(0);
-});
+        await api
+            .post('/api/blogs')
+            .set({ Authorization: `Bearer ${token}` })
+            .send(newBlog)
+            .expect(200)
+            .expect('Content-Type', /application\/json/);
 
-test('adding blogs with no title and url', async () => {
-    const newBlog = {
-        author: "The Mysterious Author",
-        likes: 234
-    };
+        const blogsAtEnd = await helper.blogsInDb();
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length + 1);
 
-    await api
-        .post('/api/blogs')
-        .send(newBlog)
-        .expect(400);
+        const contents = blogsAtEnd.map(b => b.title);
+        expect(contents).toContain(
+            'This blog is about dogs!'
+        );
+    });
 
-    const response = await helper.blogsInDb();
-    expect(response).toHaveLength(helper.initialBlogs.length);
-});
+    test('this blog has no likes so it needs 0 likes', async () => {
+        const targetUser = {
+            username: 'superuser',
+            password: 'supersecret'
+        };
 
-test('deletion of a blog', async () => {
-    const blogsAtStart = await helper.blogsInDb();
-    const blogToDelete = blogsAtStart[0];
+        const userResult = await api
+            .post('/api/login')
+            .send(targetUser)
+            .expect(200);
 
-    await api
-        .delete(`/api/blogs/${blogToDelete.id}`)
-        .expect(204);
+        const { token } = userResult.body;
 
-    const blogsAtEnd = await helper.blogsInDb();
+        const newBlog = {
+            title: "This blog is going to start with 0 likes!",
+            author: "Joe Smith",
+            url: "www.no-likes.com"
+        };
 
-    expect(blogsAtEnd).toHaveLength(
-        helper.initialBlogs.length - 1
-    );
+        const response = await api
+            .post('/api/blogs')
+            .set({ Authorization: `Bearer ${token}` })
+            .send(newBlog)
+            .expect(200)
+            .expect('Content-Type', /application\/json/);
 
-    const contents = blogsAtEnd.map(b => b.title);
-    expect(contents).not.toContain(blogToDelete.title);
+        expect(response.body.likes).toBe(0);
+    });
+
+    test('adding blogs with no title and url', async () => {
+        const targetUser = {
+            username: 'superuser',
+            password: 'supersecret'
+        };
+
+        const userResult = await api
+            .post('/api/login')
+            .send(targetUser)
+            .expect(200);
+
+        const { token } = userResult.body;
+
+        const newBlog = {
+            author: "The Mysterious Author",
+            likes: 234
+        };
+
+        await api
+            .post('/api/blogs')
+            .set({ Authorization: `Bearer ${token}` })
+            .send(newBlog)
+            .expect(400);
+
+        const response = await helper.blogsInDb();
+        expect(response).toHaveLength(helper.initialBlogs.length);
+    });
+
+    test('deletion of a blog', async () => {
+        const targetUser = {
+            username: 'superuser',
+            password: 'supersecret'
+        };
+
+        const userResult = await api
+            .post('/api/login')
+            .send(targetUser)
+            .expect(200);
+
+        const { token } = userResult.body;
+
+        const newBlog = {
+            title: "This blog is about dogs!",
+            author: "Dog Man",
+            url: "www.dogs.com",
+            likes: 124
+        };
+
+        await api
+            .post('/api/blogs')
+            .set({ Authorization: `Bearer ${token}` })
+            .send(newBlog)
+            .expect(200)
+            .expect('Content-Type', /application\/json/);
+
+        const blogsAtStart = await helper.blogsInDb();
+        const blogToDelete = blogsAtStart[2];
+
+        await api
+            .delete(`/api/blogs/${blogToDelete.id}`)
+            .set({ Authorization: `Bearer ${token}` })
+            .expect(204);
+
+        const blogsAtEnd = await helper.blogsInDb();
+
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length);
+
+        const contents = blogsAtEnd.map(b => b.title);
+        expect(contents).not.toContain(blogToDelete.title);
+    });
 });
 
 test('updating existing blog likes', async () => {
