@@ -42,6 +42,26 @@ describe('testing the creation of blogs with user tokens', () => {
         await user.save();
     });
 
+    test('creation fails with appropriate status code when token is not provided', async () => {
+
+        const newBlog = {
+            title: "This blog is about dogs!",
+            author: "Dog Man",
+            url: "www.dogs.com",
+            likes: 124
+        };
+
+        await api
+            .post('/api/blogs')
+            .set({ Authorization: `Bad token` })
+            .send(newBlog)
+            .expect(401)
+            .expect('Content-Type', /application\/json/);
+
+        const blogsAtEnd = await helper.blogsInDb();
+        expect(blogsAtEnd).toHaveLength(helper.initialBlogs.length);
+    });
+
     test('a valid blog can be added', async () => {
         const targetUser = {
             username: 'superuser',
